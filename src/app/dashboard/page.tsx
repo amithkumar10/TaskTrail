@@ -16,7 +16,7 @@ const page = () => {
   const [selectedDate, setSelectedDate] = useState<string>(toDateStr(new Date()));
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen" style={{ backgroundImage: "url('')" }}>
 
       {/* Calendar */}
       <div className="w-[40%] p-6 flex flex-col gap-6">
