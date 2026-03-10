@@ -17,7 +17,7 @@ const ToDos: React.FC = () => {
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const res = await fetch(`/api/tasks?userId=${userId}`);
+        const res = await fetch(`/api/tasks?userId=${userId}&&date=${new Date().toISOString().split("T")[0]}`);
         if (!res.ok) throw new Error("Failed to fetch tasks");
         const data: TaskType[] = await res.json();
         setTasks(data);
