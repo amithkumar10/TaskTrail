@@ -54,8 +54,10 @@ export async function GET() {
       html: `
       <div style="font-family:Arial,sans-serif;max-width:650px;margin:auto;">
         
-        <h2 style="color:#2c3e50;"><b>Weekly Task Report</b></h2>
-        <img src="/public/TaskTrail-Logo.png" alt="Task Report" style="width:100%;max-width:600px;margin-top:15px;border-radius:8px;">
+        <img src="https://sst-task-trail.vercel.app/TaskTrail-Logo.png" alt="Task Report" style="width:100%;max-width:600px;margin-top:15px;border-radius:8px;">
+
+         <h2 style="color:#2c3e50;"><b>Weekly Task Report</b></h2>
+
         <p>
           <b>Hello,</b><br><br>
           Here is the <b>summary of tasks completed this week.</b>
