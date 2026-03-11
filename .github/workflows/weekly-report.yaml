@@ -1,0 +1,14 @@
+name: Weekly Task Report
+
+on:
+  schedule:
+  - cron: '5 5 * * 3'
+
+jobs:
+  send-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get Weekly Completed Tasks
+        run: |
+          curl https://sst-task-trail.vercel.app/api/tasks/weekly-tasks
