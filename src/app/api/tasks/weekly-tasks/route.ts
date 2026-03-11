@@ -57,7 +57,7 @@ export async function GET() {
          <img
     src="https://sst-task-trail.vercel.app/TaskTrail-Logo.png"
     alt="Task Report"
-    style="display:block;margin:15px auto;max-width:300px;width:100%;border-radius:8px;"
+    style="display:block;margin:15px auto;max-width:200px;width:100%;border-radius:8px;"
   >
 
 
