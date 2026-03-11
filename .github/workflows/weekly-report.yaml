@@ -2,12 +2,12 @@ name: Weekly Task Report
 
 on:
   schedule:
-  - cron: '5 5 * * 3'
+    - cron: '5 5 * * 3'
+  workflow_dispatch:
 
 jobs:
   send-report:
     runs-on: ubuntu-latest
-
     steps:
       - name: Get Weekly Completed Tasks
         run: |
