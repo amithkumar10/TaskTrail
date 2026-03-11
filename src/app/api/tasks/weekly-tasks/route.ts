@@ -57,7 +57,7 @@ export async function GET() {
          <img
     src="https://sst-task-trail.vercel.app/TaskTrail-Logo.png"
     alt="Task Report"
-    style="display:block;margin:35px auto;max-width:200px;width:100%;border-radius:8px;"
+    style="display:block;margin:20px auto;max-width:200px;width:100%;border-radius:8px;"
   >
 
 
@@ -65,7 +65,7 @@ export async function GET() {
 
         <p>
           <b>Hello,</b><br><br>
-          Here is the <b>summary of tasks completed this week.</b>
+          Here is the <b>summary of tasks completed this week by your intern.</b>
         </p>
 
         <p><b>Total Tasks Completed:</b> ${names.length}</p>
