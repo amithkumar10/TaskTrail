@@ -3,5 +3,7 @@ export interface User {
   manager: string
   project: string
   position: string
-  email: string
+  username: string
+  role: string
+  password: string
 }

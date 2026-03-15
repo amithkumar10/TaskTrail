@@ -15,10 +15,12 @@ export async function POST(req: Request) {
 
   const result = await db.collection("users").insertOne({
     name: body.name,
-    email: body.email,
+    username: body.username,
     project: body.project,
     manager: body.manager,
-    position: body.position
+    position: body.position,
+    role: body.role,
+    password: body.password
   });
 
   return Response.json({
