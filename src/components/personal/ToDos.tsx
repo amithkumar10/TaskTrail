@@ -3,8 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { Task as TaskType } from "@/app/models/Tasks";
 
-const userId = JSON.parse(localStorage.getItem("userId") || "null");
-
 const ToDos: React.FC = () => {
   const [task, setTask] = useState("");
   const [tasks, setTasks] = useState<TaskType[]>([]);
@@ -12,12 +10,18 @@ const ToDos: React.FC = () => {
   const [editingText, setEditingText] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+
+    useEffect(() => {
+    const id = JSON.parse(localStorage.getItem("userId") || "null");
+    setUserId(id);
+  }, []);
 
   // ─── Fetch tasks on mount ───────────────────────────────────────────────────
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const res = await fetch(`/api/tasks?userId=${userId}&&date=${new Date().toISOString().split("T")[0]}`);
+        const res = await fetch(`/api/tasks?userId=${userId}&date=${new Date().toISOString().split("T")[0]}`);
         if (!res.ok) throw new Error("Failed to fetch tasks");
         const data: TaskType[] = await res.json();
         setTasks(data);
