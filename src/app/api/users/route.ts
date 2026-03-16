@@ -20,7 +20,8 @@ export async function POST(req: Request) {
     manager: body.manager,
     position: body.position,
     role: body.role,
-    password: body.password
+    password: body.password,
+    email: body.email
   });
 
   return Response.json({

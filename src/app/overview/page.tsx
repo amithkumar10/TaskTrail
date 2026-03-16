@@ -12,21 +12,23 @@ const OverviewPage = () => {
 
   const [firstName, setFirstName] = useState("");
   const [project, setProject] = useState("");
+  const [email, setEmail] = useState("");
   const [position, setPosition] = useState("");
   const [manager, setManager] = useState("");
   const [generatedUsername, setGeneratedUsername] = useState("");
   const [generatedPassword, setGeneratedPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  // "idle" | "sending" | "sent" | "failed"
+  const [mailStatus, setMailStatus] = useState("idle");
+
   useEffect(() => {
     const fetchInterns = async () => {
       try {
         const res = await api.get("/users");
-
         const internsOnly = (res.data || []).filter(
           (user) => user.role === "Intern"
         );
-
         setInterns(internsOnly);
       } catch (err) {
         setError("Failed to load interns. Please try again.");
@@ -48,14 +50,33 @@ const OverviewPage = () => {
     return password;
   };
 
+  const sendCredentialsMail = async ({ name, email, username, password }) => {
+    setMailStatus("sending");
+    try {
+      const res = await fetch("/api/send-credentials", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, username, password }),
+      });
+
+      if (!res.ok) throw new Error("Mail API responded with an error.");
+      setMailStatus("sent");
+    } catch (err) {
+      console.error("Failed to send credentials email:", err);
+      setMailStatus("failed");
+    }
+  };
+
   const handleAddIntern = async (e) => {
     e.preventDefault();
     setError("");
+    setMailStatus("idle");
 
     const trimmedName = firstName.trim();
     const trimmedProject = project.trim();
     const trimmedManager = manager.trim();
     const trimmedPosition = position.trim();
+    const trimmedEmail = email.trim();
 
     if (!trimmedName) {
       setError("First name is required.");
@@ -74,7 +95,9 @@ const OverviewPage = () => {
         project: trimmedProject || "Not assigned",
         manager: trimmedManager || "Not assigned",
         role: "Intern",
+        password: password,
         position: trimmedPosition || "Not assigned",
+        email: trimmedEmail,
       });
 
       setInterns((prev) => [
@@ -85,7 +108,9 @@ const OverviewPage = () => {
           project: trimmedProject || "Not assigned",
           manager: trimmedManager || "Not assigned",
           position: trimmedPosition || "Not assigned",
+          password: password,
           role: "Intern",
+          email: trimmedEmail,
         },
       ]);
 
@@ -96,6 +121,19 @@ const OverviewPage = () => {
       setProject("");
       setManager("");
       setPosition("");
+      setEmail("");
+
+      // ✉️ Send credentials email right after account is created
+      if (trimmedEmail) {
+        await sendCredentialsMail({
+          name: trimmedName,
+          email: trimmedEmail,
+          username,
+          password,
+        });
+      } else {
+        setMailStatus("idle"); // no email provided, skip silently
+      }
     } catch (err) {
       setError("Failed to add intern. Please try again.");
     } finally {
@@ -106,9 +144,9 @@ const OverviewPage = () => {
   return (
     <div className="min-h-screen bg-muted/50 px-10 py-8">
       <div className="mx-auto flex max-w-5xl flex-col gap-8">
-        <header className="flex bg-black text-white justify-between  gap-2 border-b border-border px-10 pb-4 sm:flex-row sm:items-end sm:justify-between">
+        <header className="flex bg-black text-white justify-between gap-2 border-b border-border px-10 pb-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="p-5">
-            <span className=" font-bold text-xl tracking-tight">
+            <span className="font-bold text-xl tracking-tight">
               Welcome, Admin
             </span>
             <p className="text-sm text-muted-foreground">
@@ -116,7 +154,7 @@ const OverviewPage = () => {
             </p>
           </div>
           <div className="flex items-center gap-2 rounded-lg mr-10 p-4 shadow-sm">
-            <span className="text-muted-foreground ">Total interns</span>
+            <span className="text-muted-foreground">Total interns</span>
             <span className="text-lg font-semibold">{interns.length}</span>
           </div>
         </header>
@@ -140,7 +178,7 @@ const OverviewPage = () => {
               </p>
             ) : (
               <div className="overflow-hidden rounded-lg mx-10 border border-border/80 bg-background">
-                <div className="flex justify-between p-4 bg-black text-white  text-xs font-medium uppercase tracking-wide text-muted-foreground sm:grid-cols-[1.2fr_1.2fr_auto]">
+                <div className="flex justify-between p-4 bg-black text-white text-xs font-medium uppercase tracking-wide text-muted-foreground sm:grid-cols-[1.2fr_1.2fr_auto]">
                   <span>Name</span>
                   <span className="hidden sm:block">Username</span>
                   <span className="text-right">Position</span>
@@ -167,18 +205,16 @@ const OverviewPage = () => {
             )}
           </section>
 
-          <section className="flex flex-col gap-4  border border-border bg-card p-4 shadow-sm sm:p-6">
-          
-             <div className="bg-black text-white mx-10 p-3 rounded-tl-lg rounded-tr-lg rounded-br-none">  
-                 <h2 className="text-base font-semibold tracking-tight sm:text-lg">
+          <section className="flex flex-col gap-4 border border-border bg-card p-4 shadow-sm sm:p-6">
+            <div className="bg-black text-white mx-10 p-3 rounded-tl-lg rounded-tr-lg rounded-br-none">
+              <h2 className="text-base font-semibold tracking-tight sm:text-lg">
                 Add new intern
               </h2>
-             </div>
-          
+            </div>
 
             <form className="p-4 mx-10" onSubmit={handleAddIntern}>
               <div className="">
-                <label className="text-xs font-medium  text-muted-foreground sm:text-sm">
+                <label className="text-xs font-medium text-muted-foreground sm:text-sm">
                   First name
                 </label>
                 <input
@@ -186,6 +222,19 @@ const OverviewPage = () => {
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   placeholder="e.g. Alzaahid"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground sm:text-sm">
+                  Email
+                </label>
+                <input
+                  type="text"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="e.g. alzaahid@example.com"
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 />
               </div>
@@ -216,7 +265,7 @@ const OverviewPage = () => {
                 />
               </div>
 
-               <div className="space-y-1.5">
+              <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground sm:text-sm">
                   Position
                 </label>
@@ -232,14 +281,14 @@ const OverviewPage = () => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="inline-flex cursor-pointer  w-40 mt-4 items-center justify-center rounded-md bg-black text-white  p-3 text-sm font-medium text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70"
+                className="inline-flex cursor-pointer w-40 mt-4 items-center justify-center rounded-md bg-black text-white p-3 text-sm font-medium text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {submitting ? "Creating intern…" : "Create intern"}
               </button>
             </form>
 
             {(generatedUsername || generatedPassword) && (
-              <div className="mt-2 space-y-2 rounded-lg border border-border bg-muted/60 px-3 py-3 text-xs sm:text-sm">
+              <div className="mt-2 space-y-2 rounded-lg border border-border bg-muted/60 px-3 py-3 text-xs sm:text-sm mx-10">
                 <p className="font-medium text-foreground">Generated credentials</p>
                 {generatedUsername && (
                   <p className="text-muted-foreground">
@@ -253,9 +302,27 @@ const OverviewPage = () => {
                     {generatedPassword}
                   </p>
                 )}
+
+                {/* ✉️ Mail status indicator */}
+                {mailStatus === "sending" && (
+                  <p className="text-xs text-muted-foreground animate-pulse">
+                    📨 Sending credentials to intern's email…
+                  </p>
+                )}
+                {mailStatus === "sent" && (
+                  <p className="text-xs text-green-600 font-medium">
+                    ✅ Credentials emailed to the intern successfully.
+                  </p>
+                )}
+                {mailStatus === "failed" && (
+                  <p className="text-xs text-red-500 font-medium">
+                    ⚠️ Failed to send email. Please share credentials manually.
+                  </p>
+                )}
+
                 <p className="mt-1 text-[11px] text-muted-foreground">
-                  Share these credentials securely with the intern. The
-                  password is only shown once here.
+                  Share these credentials securely with the intern. The password
+                  is only shown once here.
                 </p>
               </div>
             )}

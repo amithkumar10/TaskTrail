@@ -83,7 +83,7 @@ export default function Page() {
             <select
               value={formData.role}
               onChange={(e) => setFormData({...formData, role: e.target.value})}
-              className="select select-bordered w-full max-w-xs"
+              className="select select-bordered w-full "
               required
             >
               <option value="">Select Role</option>
