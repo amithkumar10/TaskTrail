@@ -128,8 +128,8 @@ const OverviewPage = () => {
         )}
 
         <div className="space-x-10">
-          <section className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
-            <h2 className="mb-3 text-base font-semibold tracking-tight sm:text-lg">
+          <section className="mb-5 w-full border border-border bg-card p-4 shadow-sm sm:p-6">
+            <h2 className="mb-3 ml-12 text-base font-semibold tracking-tight sm:text-lg">
               Intern list
             </h2>
             {loading ? (
@@ -167,16 +167,16 @@ const OverviewPage = () => {
             )}
           </section>
 
-          <section className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
+          <section className="flex flex-col gap-4  border border-border bg-card p-4 shadow-sm sm:p-6">
           
-             <div className="bg-black text-white p-3 rounded-tl-lg rounded-tr-lg rounded-br-none">  
+             <div className="bg-black text-white mx-10 p-3 rounded-tl-lg rounded-tr-lg rounded-br-none">  
                  <h2 className="text-base font-semibold tracking-tight sm:text-lg">
                 Add new intern
               </h2>
              </div>
           
 
-            <form className="p-4" onSubmit={handleAddIntern}>
+            <form className="p-4 mx-10" onSubmit={handleAddIntern}>
               <div className="">
                 <label className="text-xs font-medium  text-muted-foreground sm:text-sm">
                   First name
