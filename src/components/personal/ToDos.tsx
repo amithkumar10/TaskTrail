@@ -17,11 +17,14 @@ const ToDos: React.FC = () => {
     setUserId(id);
   }, []);
 
+  console.log("Current userId in ToDos:", userId);
+
   // ─── Fetch tasks on mount ───────────────────────────────────────────────────
   useEffect(() => {
     const fetchTasks = async () => {
+       if (!userId) return;
       try {
-        const res = await fetch(`/api/tasks?userId=${userId}&date=${new Date().toISOString().split("T")[0]}`);
+        const res = await fetch(`/api/tasks?userId=${userId}&&date=${new Date().toISOString().split("T")[0]}`);
         if (!res.ok) throw new Error("Failed to fetch tasks");
         const data: TaskType[] = await res.json();
         setTasks(data);
@@ -34,7 +37,7 @@ const ToDos: React.FC = () => {
     };
 
     fetchTasks();
-  }, []);
+  }, [userId]);
 
   // ─── Add task (POST) ────────────────────────────────────────────────────────
   const addTask = async () => {
