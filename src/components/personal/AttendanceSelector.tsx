@@ -9,7 +9,7 @@ const AttendanceSelector: React.FC = () => {
 
   const options: { value: DayStatus; label: string; hint: string }[] = [
     { value: "Full Day", label: "Full Day", hint: "8 hrs" },
-    { value: "Half Day", label: "Half Day", hint: "4 hrs" },
+    { value: "Half Day", label: "Half Day", hint: "5 hrs" },
     { value: "WFH", label: "WFH", hint: "Remote" },
     { value: "Leave", label: "Leave", hint: "Absent" },
   ];

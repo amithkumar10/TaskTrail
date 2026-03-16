@@ -3,16 +3,18 @@ import React, { useEffect } from 'react'
 import Image from 'next/image'
 import { useState } from 'react'
 import axios from "@/app/utils/axiosConfig";
+import { useParams } from 'next/navigation';
 
 const ProfileCard = () => {
   const [data, setData] = useState({ name: "", project: "", manager: "", position: "" });
+  const userId = useParams();
 
   useEffect(()=>{
     axios.get("/users")
       .then(response => {
-        setData(response.data[0]);
+      
         console.log("User data:", response.data);
-        console.log(response.data[0]?.name);
+        setData(response.data? response.data.find((user: { _id: string }) => user._id === userId.internId) : { name: "", project: "", manager: "", position: "" });
       })
       .catch(error => {
         console.error("Error fetching user data:", error);

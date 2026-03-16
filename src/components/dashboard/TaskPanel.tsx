@@ -5,10 +5,11 @@ import { Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import ProfileCard from "./Profile";
 import { Task } from "@/app/models/Tasks";
+import { useParams } from "next/navigation";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const userId = "69ac17a8e06635a71b2f8cc1";
+
 
 const COLORS = [
   "rgba(255, 206, 86, 0.7)",
@@ -27,6 +28,7 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ selectedDate }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const userId = useParams().internId; 
 
   // Re-fetch whenever selectedDate changes
   useEffect(() => {

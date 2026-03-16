@@ -1,10 +1,11 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Calendar from '@/components/dashboard/Calendar'
 import TaskPanel from '@/components/dashboard/TaskPanel'
 import Representation from '@/components/dashboard/Representation'
 import Download from '@/components/dashboard/Download'
+
 
 const toDateStr = (date: Date) => {
   const mm = String(date.getMonth() + 1).padStart(2, "0");
@@ -12,8 +13,20 @@ const toDateStr = (date: Date) => {
   return `${date.getFullYear()}-${mm}-${dd}`;
 };
 
+ const checkAuthorization = () => {
+    const role = localStorage.getItem("role") ? JSON.parse(localStorage.getItem("role")) : null;
+    if (role !== "Admin") {
+      window.location.href = "/unauthorized";
+    }
+  };
+
+
 const page = () => {
   const [selectedDate, setSelectedDate] = useState<string>(toDateStr(new Date()));
+
+  useEffect(()=>{
+    checkAuthorization();
+  })
 
   return (
     <div className="flex h-screen" style={{ backgroundImage: "url('')" }}>

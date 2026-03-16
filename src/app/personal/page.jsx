@@ -1,8 +1,15 @@
+"use client"
 import React from 'react'
 import ToDos from '@/components/personal/ToDos'
 import AttendanceSelector from '@/components/personal/AttendanceSelector'
+import { useEffect, useState } from 'react'
 
 const page = () => {
+  const [letter, setLetter] = useState("U");
+  useEffect(() => {
+      const word = localStorage.getItem("username") ? JSON.parse(localStorage.getItem("username"))[0].toUpperCase() : "U";
+      setLetter(word);
+  },[])
   return (
     <div className="min-h-screen bg-gray-50">
       
@@ -16,13 +23,13 @@ const page = () => {
             </p>
           </div>
           <div className="w-8 h-8 rounded-full bg-white flex  items-center justify-center">
-            <span className="text-black text-xs font-semibold m-2">U</span>
+            <span className="text-black text-xs font-semibold m-2">{letter}</span>
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 py-8 flex gap-4 items-start">
+      <div className="max-w-4xl mx-auto px-4 py-8 flex gap-4 items-start sm:flex-row flex-col">
 
         {/* Attendance card */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden shrink-0">

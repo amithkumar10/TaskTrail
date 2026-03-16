@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import api from "../utils/axiosConfig";
+import { useRouter } from "next/navigation";
 
 const companyDomain = "tasktrail.com";
 
@@ -9,6 +10,7 @@ const OverviewPage = () => {
   const [interns, setInterns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const router = useRouter();
 
   const [firstName, setFirstName] = useState("");
   const [project, setProject] = useState("");
@@ -19,10 +21,18 @@ const OverviewPage = () => {
   const [generatedPassword, setGeneratedPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // "idle" | "sending" | "sent" | "failed"
+  const checkAuthorization = () => {
+    const role = localStorage.getItem("role") ? JSON.parse(localStorage.getItem("role")) : null;
+    if (role !== "Admin") {
+      window.location.href = "/unauthorized";
+    }
+  };
+
+
   const [mailStatus, setMailStatus] = useState("idle");
 
   useEffect(() => {
+    checkAuthorization();
     const fetchInterns = async () => {
       try {
         const res = await api.get("/users");
@@ -38,7 +48,7 @@ const OverviewPage = () => {
     };
 
     fetchInterns();
-  }, []);
+  }, [interns.length]);
 
   const generatePassword = (length = 10) => {
     const chars =
@@ -186,6 +196,7 @@ const OverviewPage = () => {
                 <ul className="divide-y divide-border/80">
                   {interns.map((intern, index) => (
                     <li
+                    onClick={() => (intern._id && router.push(`/overview/dashboard/${intern._id}`))}
                       key={intern._id || `${intern.username}-${index}`}
                       className="flex justify-between p-4 border border-border/80 cursor-pointer hover:bg-gray-300 items-center px-4 py-2 text-sm sm:grid-cols-[1.2fr_1.2fr_auto]"
                     >
