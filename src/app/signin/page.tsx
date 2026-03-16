@@ -11,6 +11,8 @@ const stats = [
   { value: "8/12", label: "On Track", color: "#2563eb" },
 ];
 
+
+
 const pills = ["Task Tracking", "Progress Reports", "Deadline Alerts", "Activity Feed"];
 
 export default function Page() {
@@ -22,10 +24,10 @@ export default function Page() {
     role: ""
   })
 
+  const [loading, setLoading] = useState(false);
+
   const handleLogin = async (e)=>{
      e.preventDefault();
-    console.log("Form Data: ", formData)
-
     const res = await axios.post("/auth", {
       username: formData.username,
       password: formData.password,
@@ -36,6 +38,8 @@ export default function Page() {
       localStorage.setItem("role", JSON.stringify(res.data.role));
       localStorage.setItem("username", JSON.stringify(res.data.username));
       localStorage.setItem("userId", JSON.stringify(res.data.userId));
+
+      setLoading(false);
       
       if(res.data.role === "Admin"){
         router.push("/overview")
@@ -98,8 +102,8 @@ export default function Page() {
           <div className="divider" />
 
           <div className="actions">
-            <button className="btn-primary " type="submit">
-              <span className="btn-title">Login →</span>
+            <button className="btn-primary " type="submit" disabled={loading}>
+              {loading ? "Logging in..." : "Login →"}
             </button>
 
           </div>
