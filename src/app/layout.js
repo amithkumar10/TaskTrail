@@ -14,7 +14,6 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "SST Task Trail",
   description: "A simple task management app built for Interns at SST",
-  viewport: "width=device-width, initial-scale=1",
   icons: {
     icon: "/TaskTrailLogo.jpg",
   },
