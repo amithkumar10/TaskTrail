@@ -48,7 +48,7 @@ export async function GET() {
     });
 
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+      from:`"TaskTrail" <${process.env.MAIL_USER}>`,
       to: "amith10mnr@gmail.com",
       subject: "Weekly Task Report",
       html: `
