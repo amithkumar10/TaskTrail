@@ -96,7 +96,7 @@ const page = () => {
   <div className="flex-1 overflow-y-auto overflow-x-hidden py-3">
     {interns.length === 0 ? (
       sidebarOpen && (
-        <p className="text-xs text-gray-400 text-center mt-8 px-4">No interns found.</p>
+        <p className="text-xs text-gray-400 text-center mt-8 px-4">Loading...</p>
       )
     ) : (
       interns.map((intern) => (
