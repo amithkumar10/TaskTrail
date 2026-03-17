@@ -27,6 +27,7 @@ export default function Page() {
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e)=>{
+    setLoading(true);
      e.preventDefault();
     const res = await axios.post("/auth", {
       username: formData.username,
