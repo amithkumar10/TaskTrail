@@ -11,6 +11,8 @@ import { useRouter } from 'next/navigation';
 
 
 
+
+
 const toDateStr = (date: Date) => {
   const mm = String(date.getMonth() + 1).padStart(2, "0");
   const dd = String(date.getDate()).padStart(2, "0");
@@ -26,7 +28,7 @@ const checkAuthorization = () => {
 
 const page = () => {
   const [selectedDate, setSelectedDate] = useState<string>(toDateStr(new Date()));
-  const [interns, setInterns] = useState<Intern[]>([]);
+  const [interns, setInterns] = useState([]);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
