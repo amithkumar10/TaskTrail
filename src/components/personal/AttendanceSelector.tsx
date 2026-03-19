@@ -8,9 +8,11 @@ type DayStatus = "Full Day" | "Half Day" | "WFH" | "Leave" | "";
 const AttendanceSelector: React.FC = () => {
   const [status, setStatus] = useState<DayStatus>("");
   const [locked, setLocked] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(()=>{
-    const userId = JSON.parse(localStorage.getItem("userId") || "null");
+    const id = JSON.parse(localStorage.getItem("userId") || "null");
+    setUserId(id);
     console.log("AttendanceSelector userId:", userId);
   }, []);
 
