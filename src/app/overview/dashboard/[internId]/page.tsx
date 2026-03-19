@@ -31,7 +31,7 @@ const page = () => {
   const [interns, setInterns] = useState([]);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
