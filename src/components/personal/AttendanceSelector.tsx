@@ -9,8 +9,12 @@ const AttendanceSelector: React.FC = () => {
   const [status, setStatus] = useState<DayStatus>("");
   const [locked, setLocked] = useState(false);
 
-  const userId = JSON.parse(localStorage.getItem("userId") || "null");
-  console.log("AttendanceSelector userId:", userId);
+  useEffect(()=>{
+    const userId = JSON.parse(localStorage.getItem("userId") || "null");
+    console.log("AttendanceSelector userId:", userId);
+  }, []);
+
+  
 
 
   const getTodayDate = () => {
