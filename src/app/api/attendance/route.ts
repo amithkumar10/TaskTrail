@@ -20,14 +20,9 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Store as Date object (CRITICAL FIX)
-    const normalizedDate = new Date(date);
-    normalizedDate.setHours(0, 0, 0, 0);
-
-    // ✅ Duplicate check aligned with Date type
     const existing = await db.collection("attendance").findOne({
       userId,
-      date: normalizedDate,
+      date: date,
     });
 
     if (existing) {
@@ -39,7 +34,7 @@ export async function POST(req: Request) {
 
     const result = await db.collection("attendance").insertOne({
       userId,
-      date: normalizedDate,
+      date: date,
       status,
       createdAt: new Date(),
     });
@@ -57,14 +52,13 @@ export async function POST(req: Request) {
     );
   }
 }
-
 export async function GET(req: Request) {
   try {
     const db = await connectDB();
 
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("userId");
-    const date = searchParams.get("date");
+    const date = searchParams.get("date"); // "YYYY-MM-DD"
 
     if (!userId || !date) {
       return Response.json(
@@ -73,15 +67,15 @@ export async function GET(req: Request) {
       );
     }
 
-    const baseDate = new Date(date);
-    const year = baseDate.getFullYear();
-    const month = baseDate.getMonth();
+    // Extract year & month from input date
+    const [year, month] = date.split("-");
 
-    const startDate = new Date(year, month, 1);
-    const endDate = new Date(year, month + 1, 0);
-    endDate.setHours(23, 59, 59, 999);
+    const startDate = `${year}-${month}-01`;
 
-    // ✅ Correct query (Date vs Date)
+    const endDay = new Date(Number(year), Number(month), 0).getDate();
+    const endDate = `${year}-${month}-${String(endDay).padStart(2, "0")}`;
+
+    // ✅ String-based query
     const records = await db.collection("attendance").find({
       userId,
       date: {
@@ -90,21 +84,20 @@ export async function GET(req: Request) {
       },
     }).toArray();
 
-    // ✅ Map day → status
+    // Map day → status
     const attendanceMap: Record<number, string> = {};
 
     records.forEach((rec: any) => {
-      const day = new Date(rec.date).getDate();
+      const day = parseInt(rec.date.split("-")[2]);
       attendanceMap[day] = rec.status;
     });
 
-    const totalDays = endDate.getDate();
+    const totalDays = endDay;
 
-    // ✅ Final expected output
     const result: string[] = [];
 
     for (let i = 1; i <= totalDays; i++) {
-      result.push(attendanceMap[i] || "Leave"); // default fallback
+      result.push(attendanceMap[i] || "Leave");
     }
 
     return Response.json({

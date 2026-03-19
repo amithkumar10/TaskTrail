@@ -13,7 +13,6 @@ const ProfileCard = () => {
     axios.get("/users")
       .then(response => {
       
-        console.log("User data:", response.data);
         setData(response.data? response.data.find((user: { _id: string }) => user._id === userId.internId) : { name: "", project: "", manager: "", position: "" });
       })
       .catch(error => {

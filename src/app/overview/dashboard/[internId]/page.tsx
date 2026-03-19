@@ -42,7 +42,7 @@ const page = () => {
   const fetchInterns = async () => {
     try {
       const res = await axios.get("/users");
-      console.log("Fetched users:", res.data);
+    
       setInterns(res.data?.filter((u: any) => u.role === "Intern") );
     } catch (err) {
       console.error("Failed to fetch interns", err);

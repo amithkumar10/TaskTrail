@@ -133,7 +133,7 @@ const OverviewPage = () => {
       setPosition("");
       setEmail("");
 
-      // ✉️ Send credentials email right after account is created
+     
       if (trimmedEmail) {
         await sendCredentialsMail({
           name: trimmedName,

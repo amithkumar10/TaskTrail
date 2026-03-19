@@ -41,12 +41,13 @@ const Calendar = ({ selectedDate, onDateSelect }: CalendarProps) => {
     return days;
   };
 
-  // ✅ Fetch attendance
+ 
   useEffect(() => {
     const fetchAttendance = async () => {
       try {
       
         const monthStr = toDateStr(currentYear, currentMonth, 1);
+        console.log("Fetching attendance for:", { userId, monthStr });
 
         const res = await fetch(
           `/api/attendance?userId=${userId}&date=${monthStr}`
