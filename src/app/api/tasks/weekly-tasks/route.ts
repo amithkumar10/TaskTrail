@@ -128,7 +128,7 @@ export async function GET() {
 
     await transporter.sendMail({
       from: `"TaskTrail" <${process.env.EMAIL_USER}>`,
-      to: "amith10mnr@gmail.com",
+      to: "ekta@sstechnologiesgoa.com",
       subject: `Weekly Intern Report — ${weekLabel}`,
       html: `
         <div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;color:#333;">
