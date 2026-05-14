@@ -11,10 +11,47 @@ const ToDos: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [timePickerIndex, setTimePickerIndex] = useState<number | null>(null);
+  const [hoursSelected, setHoursSelected] = useState<number>(0);
+  const [minsSelected, setMinsSelected] = useState<number>(30);
+  const [canAddTasks, setCanAddTasks] = useState(false);
+
+  const formatTime = (minutes?: number | null) => {
+    if (minutes === undefined || minutes === null) return "";
+    const hrs = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hrs > 0 && mins > 0) return `${hrs}h ${mins}m`;
+    if (hrs > 0) return `${hrs}h`;
+    return `${mins}m`;
+  };
+
+  const getTodayDate = () => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const syncAttendanceState = () => {
+    const savedStatus = localStorage.getItem("attendanceStatus");
+    const savedDate = localStorage.getItem("attendanceDate");
+    setCanAddTasks(Boolean(savedStatus && savedDate === getTodayDate()));
+  };
 
     useEffect(() => {
     const id = JSON.parse(localStorage.getItem("userId") || "null");
     setUserId(id);
+    syncAttendanceState();
+  }, []);
+
+  useEffect(() => {
+    const handleAttendanceMarked = () => {
+      syncAttendanceState();
+    };
+
+    window.addEventListener("attendanceMarked", handleAttendanceMarked);
+    return () => window.removeEventListener("attendanceMarked", handleAttendanceMarked);
   }, []);
 
   console.log("Current userId in ToDos:", userId);
@@ -42,6 +79,10 @@ const ToDos: React.FC = () => {
   // ─── Add task (POST) ────────────────────────────────────────────────────────
   const addTask = async () => {
     if (!task.trim()) return;
+    if (!canAddTasks) {
+      alert("Please mark attendance for today before adding tasks.");
+      return;
+    }
 
     const newTask: Partial<TaskType> = { userId, name: task, status: "pending" };
 
@@ -76,44 +117,53 @@ const ToDos: React.FC = () => {
 
     // Completing a task → ask for time spent
     if (t.status === "pending") {
-      const timeInput = prompt(`How many hours did you spend on "${t.name}"?`);
-      const time = Number(timeInput);
-
-      if (isNaN(time) || time <= 0) {
-        alert("Invalid input! Task not marked as completed.");
-        return;
-      }
-
-      try {
-        const res = await fetch("/api/tasks", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ taskId: t._id, timeSpent: time }),
-        });
-
-        if (!res.ok) {
-          const err = await res.json();
-          alert(`Error: ${err.error}`);
-          return;
-        }
-
-        setTasks((prev) =>
-          prev.map((task, i) =>
-            i === index ? { ...task, status: "completed", timeSpent: time } : task
-          )
-        );
-      } catch (err) {
-        alert("Failed to update task.");
-        console.error(err);
-      }
-
-    // Undoing a task → optimistic local update only (no undo endpoint yet)
+      setTimePickerIndex(index);
+      setHoursSelected(0);
+      setMinsSelected(30);
+      return;
     } else {
       setTasks((prev) =>
         prev.map((task, i) =>
           i === index ? { ...task, status: "pending", timeSpent: undefined } : task
         )
       );
+    }
+  };
+
+  const cancelTimePicker = () => {
+    setTimePickerIndex(null);
+  };
+
+  const confirmTimeForTask = async (index: number) => {
+    const t = tasks[index];
+    const totalMins = hoursSelected * 60 + minsSelected;
+    if (totalMins <= 0) {
+      alert("Please select a valid time greater than 0.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/tasks", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ taskId: t._id, timeSpent: totalMins }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        alert(`Error: ${err.error}`);
+        return;
+      }
+
+      setTasks((prev) =>
+        prev.map((task, i) =>
+          i === index ? { ...task, status: "completed", timeSpent: totalMins } : task
+        )
+      );
+      setTimePickerIndex(null);
+    } catch (err) {
+      alert("Failed to update task.");
+      console.error(err);
     }
   };
 
@@ -143,6 +193,11 @@ const ToDos: React.FC = () => {
   </div>
 
   {/* Add Task */}
+  {!canAddTasks && (
+    <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+      Mark attendance first to enable todo entry.
+    </div>
+  )}
   <div className="flex gap-2 mb-6">
     <input
       type="text"
@@ -150,11 +205,13 @@ const ToDos: React.FC = () => {
       onChange={(e) => setTask(e.target.value)}
       onKeyDown={(e) => e.key === "Enter" && addTask()}
       placeholder="What needs to be done?"
-      className="flex-1 bg-white text-gray-900 placeholder-gray-400 text-sm px-4 py-2.5 rounded-xl border border-gray-400 focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-300 transition-all"
+      disabled={!canAddTasks}
+      className="flex-1 bg-white text-gray-900 placeholder-gray-400 text-sm px-4 py-2.5 rounded-xl border border-gray-400 focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-300 transition-all disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
     />
     <button
       onClick={addTask}
-      className="bg-gray-900 cursor-pointer hover:bg-gray-700 text-white font-semibold px-5 py-2.5 rounded-xl transition-all active:scale-95 text-sm"
+      disabled={!canAddTasks}
+      className="bg-gray-900 cursor-pointer hover:bg-gray-700 text-white font-semibold px-5 py-2.5 rounded-xl transition-all active:scale-95 text-sm disabled:cursor-not-allowed disabled:bg-gray-400"
     >
       Add
     </button>
@@ -211,38 +268,67 @@ const ToDos: React.FC = () => {
               {t.name}
             </span>
             {t.timeSpent !== undefined && (
-              <span className="text-xs text-gray-400 mt-0.5">{t.timeSpent} hrs</span>
+              <span className="text-xs text-gray-400 mt-0.5">{formatTime(t.timeSpent)}</span>
             )}
           </div>
         )}
 
         {/* Right: Action buttons */}
-        <div className="flex gap-1.5 ml-3 shrink-0">
-          <button
-            onClick={() => toggleTask(idx)}
-            className={`text-xs font-semibold cursor-pointer px-3 py-1.5 rounded-lg border transition-all active:scale-95 ${
-              t.status === "completed"
-                ? "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"
-                : "bg-gray-900 border-gray-900 text-white hover:bg-gray-700"
-            }`}
-          >
-            {t.status === "completed" ? "Undo" : "Done"}
-          </button>
+        <div className="flex gap-1.5 ml-3 shrink-0 items-center">
+          {timePickerIndex === idx ? (
+            <div className="flex items-center gap-2 bg-white p-2 rounded-md border">
+              <select
+                value={hoursSelected}
+                onChange={(e) => setHoursSelected(Number(e.target.value))}
+                className="text-sm rounded-md border px-2 py-1"
+              >
+                {Array.from({ length: 13 }).map((_, h) => (
+                  <option key={h} value={h}>{h}h</option>
+                ))}
+              </select>
 
-          {editingIndex === idx ? (
-            <button
-              onClick={() => saveEdit(idx)}
-              className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-all active:scale-95"
-            >
-              Save
-            </button>
+              <select
+                value={minsSelected}
+                onChange={(e) => setMinsSelected(Number(e.target.value))}
+                className="text-sm rounded-md border px-2 py-1"
+              >
+                {[0,15,30,45].map((m) => (
+                  <option key={m} value={m}>{m}m</option>
+                ))}
+              </select>
+
+              <button onClick={() => confirmTimeForTask(idx)} className="text-xs bg-gray-900 text-white px-3 py-1.5 rounded-md">Confirm</button>
+              <button onClick={cancelTimePicker} className="text-xs bg-white border px-3 py-1.5 rounded-md">Cancel</button>
+            </div>
           ) : (
-            <button
-              onClick={() => startEdit(idx)}
-              className="text-xs font-semibold cursor-pointer px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-all active:scale-95"
-            >
-              Edit
-            </button>
+            <>
+              <button
+                onClick={() => toggleTask(idx)}
+                className={`text-xs font-semibold cursor-pointer px-3 py-1.5 rounded-lg border transition-all active:scale-95 ${
+                  t.status === "completed"
+                    ? "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"
+                    : "bg-gray-900 border-gray-900 text-white hover:bg-gray-700"
+                }`}
+              >
+                {t.status === "completed" ? "Undo" : "Done"}
+              </button>
+
+              {editingIndex === idx ? (
+                <button
+                  onClick={() => saveEdit(idx)}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-all active:scale-95"
+                >
+                  Save
+                </button>
+              ) : (
+                <button
+                  onClick={() => startEdit(idx)}
+                  className="text-xs font-semibold cursor-pointer px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-all active:scale-95"
+                >
+                  Edit
+                </button>
+              )}
+            </>
           )}
         </div>
       </li>

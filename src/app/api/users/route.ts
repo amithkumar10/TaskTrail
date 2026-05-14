@@ -19,9 +19,11 @@ export async function POST(req: Request) {
     project: body.project,
     manager: body.manager,
     position: body.position,
+    startDate: body.startDate,
+    endDate: body.endDate,
     role: body.role,
     password: body.password,
-    email: body.email
+    email: body.email,
   });
 
   return Response.json({

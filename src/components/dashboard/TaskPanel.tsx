@@ -59,11 +59,20 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ selectedDate }) => {
     datasets: [
       {
         label: "Time Spent (hrs)",
-        data: pieEligible.map((t) => t.timeSpent),
+        data: pieEligible.map((t) => (t.timeSpent ?? 0) / 60),
         backgroundColor: pieEligible.map((_, i) => COLORS[i % COLORS.length]),
         borderWidth: 1,
       },
     ],
+  };
+
+  const formatTime = (minutes?: number | null) => {
+    if (minutes === undefined || minutes === null) return "";
+    const hrs = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hrs > 0 && mins > 0) return `${hrs}h ${mins}m`;
+    if (hrs > 0) return `${hrs}h`;
+    return `${mins}m`;
   };
 
   return (
@@ -110,7 +119,7 @@ const TaskPanel: React.FC<TaskPanelProps> = ({ selectedDate }) => {
             <li key={t._id}>
               {t.name}
               {t.timeSpent !== undefined && (
-                <span className="text-sm text-gray-500 ml-2">({t.timeSpent} hrs)</span>
+                <span className="text-sm text-gray-500 ml-2">({formatTime(t.timeSpent)})</span>
               )}
             </li>
           ))}

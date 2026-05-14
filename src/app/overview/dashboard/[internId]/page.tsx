@@ -6,8 +6,9 @@ import TaskPanel from '@/components/dashboard/TaskPanel'
 import Representation from '@/components/dashboard/Representation'
 import Download from '@/components/dashboard/Download'
 import axios from '@/app/utils/axiosConfig'
-import { PanelLeft } from 'lucide-react';
+import { PanelLeft, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { logout } from '@/app/utils/logout';
 
 
 
@@ -21,7 +22,8 @@ const toDateStr = (date: Date) => {
 
 const checkAuthorization = () => {
   const role = localStorage.getItem("role") ? JSON.parse(localStorage.getItem("role")!) : null;
-  if (role !== "Admin") {
+  const userId = localStorage.getItem("userId") ? JSON.parse(localStorage.getItem("userId")!) : null;
+  if (role !== "Admin" || userId !== "69b7a372da8fb747f01f6827") {
     window.location.href = "/unauthorized";
   }
 };
@@ -80,7 +82,10 @@ const page = () => {
       ${sidebarOpen ? "justify-between" : "justify-center"} bg-black text-white`}
   >
     {sidebarOpen && (
-      <div>
+      <div className='flex gap-2 items-center'>
+        
+    <button className='bg-white mb-5 text-black rounded-full py-0.5 px-2 text-center font-bold cursor-pointer hover:bg-gray-200' onClick={()=>{router.push("/overview")}}>←</button>
+
         <h2 className="text-sm font-semibold tracking-widest uppercase">View All Interns</h2>
       </div>
     )}
@@ -164,14 +169,25 @@ const page = () => {
     )}
   </div>
 
+
+ 
+
   {/* Footer badge */}
-  {sidebarOpen && (
-    <div className="px-4 py-3 border-t border-gray-100 bg-black">
-      <p className="text-xs text-indigo-200 text-center tracking-wide">
+  <div className="mt-auto border-t border-gray-100 bg-black px-3 py-3">
+    <button
+      type="button"
+      onClick={logout}
+      className={`flex w-full items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-white transition-colors hover:bg-white/20 ${sidebarOpen ? "" : "px-2"}`}
+    >
+      <LogOut className="h-4 w-4 shrink-0" />
+      {sidebarOpen && <span>Logout</span>}
+    </button>
+    {sidebarOpen && (
+      <p className="mt-3 text-xs text-indigo-200 text-center tracking-wide">
         TaskTrail <span className="text-white font-semibold">Admin</span>
       </p>
-    </div>
-  )}
+    )}
+  </div>
 </aside>
 
       {/* Calendar + Widgets */}

@@ -63,6 +63,7 @@ const AttendanceSelector: React.FC = () => {
         // ✅ Persist lock for today
         localStorage.setItem("attendanceStatus", value);
         localStorage.setItem("attendanceDate", todayDate);
+        window.dispatchEvent(new Event("attendanceMarked"));
 
         console.log("Attendance updated successfully");
       }

@@ -1,7 +1,8 @@
 "use client";
-import axios from '../utils/axiosConfig'
+import axios from '../utils/axiosConfig';
+import { isAxiosError } from 'axios';
 
-import React, {useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import LoginStyles from "@/components/home/LoginStyle";
 
@@ -11,8 +12,6 @@ const stats = [
   { value: "8/12", label: "On Track", color: "#2563eb" },
 ];
 
-
-
 const pills = ["Task Tracking", "Progress Reports", "Deadline Alerts", "Activity Feed"];
 
 export default function Page() {
@@ -21,46 +20,55 @@ export default function Page() {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
-    role: ""
-  })
+  });
 
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleLogin = async (e)=>{
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError("");
     setLoading(true);
-     e.preventDefault();
-    const res = await axios.post("/auth", {
-      username: formData.username,
-      password: formData.password,
-      role: formData.role
-    })
+    try {
+      const res = await axios.post("/auth", {
+        username: formData.username.trim().toLowerCase(),
+        password: formData.password,
+      });
 
-    if(res.status === 200){
       localStorage.setItem("role", JSON.stringify(res.data.role));
       localStorage.setItem("username", JSON.stringify(res.data.username));
+      // Save full name when available; fall back to username
+      localStorage.setItem("name", JSON.stringify(res.data.name || res.data.username));
       localStorage.setItem("userId", JSON.stringify(res.data.userId));
 
+      if (res.data.role === "Admin") {
+        router.push("/overview");
+      } else if (res.data.role === "Intern" || res.data.role === "Employee") {
+        router.push("/personal");
+      }
+    } catch (err) {
+      if (isAxiosError(err)) {
+        setError(err.response?.data?.message || "Login failed. Please check your username and password.");
+      } else {
+        setError("Login failed. Please try again.");
+      }
+    } finally {
       setLoading(false);
-      
-      if(res.data.role === "Admin"){
-        router.push("/overview")
-      }
-      else if(res.data.role === "Intern"){
-        router.push("/personal")
-      }
     }
 
-    setFormData({
-      username: "",
-      password: "",
-      role: ""
-    })
-  }
+    setFormData({ username: "", password: "" });
+  };
 
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 80);
     return () => clearTimeout(t);
   }, []);
+
+  useEffect(() => {
+    if (!error) return;
+    const t = setTimeout(() => setError(""), 3000);
+    return () => clearTimeout(t);
+  }, [error]);
 
   return (
     <>
@@ -80,36 +88,42 @@ export default function Page() {
             />
           </div>
 
-          <h1 className="heading">
-            Welcome
-          </h1>
+          <h1 className="heading">Welcome</h1>
 
           <div className="parent-input">
-            <select
-              value={formData.role}
-              onChange={(e) => setFormData({...formData, role: e.target.value})}
-              className="select select-bordered w-full "
-              required
-            >
-              <option value="">Select Role</option>
-              <option value="Intern">Intern</option>
-              <option value="Admin">Admin</option>
-            </select>
-            <input type="text" value={formData.username} onChange={(e)=> setFormData({...formData, username: e.target.value})} placeholder="Enter username" />
+            <input
+              type="text"
+              value={formData.username}
+              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              placeholder="Enter username"
+            />
+            <input
+              type="password"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              placeholder="Enter password"
+            />
+          </div>
 
-            <input type="password" value={formData.password} onChange={(e)=> setFormData({...formData, password: e.target.value})} placeholder="Enter password" />
+          <div
+            className={`mt-4 min-h-[52px] rounded-lg border px-4 py-3 text-sm font-semibold text-center shadow-sm transition-all duration-500 ${
+              error
+                ? "border-red-300 bg-red-50 text-red-700 opacity-100"
+                : "border-transparent bg-transparent text-transparent opacity-0"
+            }`}
+            role="alert"
+            aria-live="assertive"
+          >
+            {error || "."}
           </div>
 
           <div className="divider" />
 
           <div className="actions">
-            <button className="btn-primary " type="submit" disabled={loading}>
+            <button className="btn-primary" type="submit" disabled={loading}>
               {loading ? "Logging in..." : "Login →"}
             </button>
-
           </div>
-
-
         </form>
       </div>
     </>
