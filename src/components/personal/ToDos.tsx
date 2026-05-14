@@ -6,8 +6,6 @@ import { Task as TaskType } from "@/app/models/Tasks";
 const ToDos: React.FC = () => {
   const [task, setTask] = useState("");
   const [tasks, setTasks] = useState<TaskType[]>([]);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [editingText, setEditingText] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -167,20 +165,6 @@ const ToDos: React.FC = () => {
     }
   };
 
-  // ─── Edit task (local only — no PUT endpoint yet) ───────────────────────────
-  const startEdit = (index: number) => {
-    setEditingIndex(index);
-    setEditingText(tasks[index].name);
-  };
-
-  const saveEdit = (index: number) => {
-    setTasks((prev) =>
-      prev.map((task, i) => (i === index ? { ...task, name: editingText } : task))
-    );
-    setEditingIndex(null);
-    setEditingText("");
-  };
-
   // ─── Render ─────────────────────────────────────────────────────────────────
   return (
    <div className="w-full max-w-md mx-auto p-6">
@@ -248,30 +232,20 @@ const ToDos: React.FC = () => {
             : "bg-white border-gray-200 hover:border-gray-300"
         }`}
       >
-        {/* Left: Task content or edit input */}
-        {editingIndex === idx ? (
-          <input
-            value={editingText}
-            onChange={(e) => setEditingText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && saveEdit(idx)}
-            className="flex-1 bg-gray-50 text-gray-900 text-sm px-3 py-1.5 rounded-lg border border-gray-400 focus:outline-none mr-3"
-          />
-        ) : (
-          <div className="flex flex-col min-w-0">
-            <span
-              className={`text-sm font-medium truncate ${
-                t.status === "completed"
-                  ? "line-through text-gray-400"
-                  : "text-gray-800"
-              }`}
-            >
-              {t.name}
-            </span>
-            {t.timeSpent !== undefined && (
-              <span className="text-xs text-gray-400 mt-0.5">{formatTime(t.timeSpent)}</span>
-            )}
-          </div>
-        )}
+        <div className="flex flex-col min-w-0">
+          <span
+            className={`text-sm font-medium truncate ${
+              t.status === "completed"
+                ? "line-through text-gray-400"
+                : "text-gray-800"
+            }`}
+          >
+            {t.name}
+          </span>
+          {t.timeSpent !== undefined && (
+            <span className="text-xs text-gray-400 mt-0.5">{formatTime(t.timeSpent)}</span>
+          )}
+        </div>
 
         {/* Right: Action buttons */}
         <div className="flex gap-1.5 ml-3 shrink-0 items-center">
@@ -312,22 +286,6 @@ const ToDos: React.FC = () => {
               >
                 {t.status === "completed" ? "Undo" : "Done"}
               </button>
-
-              {editingIndex === idx ? (
-                <button
-                  onClick={() => saveEdit(idx)}
-                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-all active:scale-95"
-                >
-                  Save
-                </button>
-              ) : (
-                <button
-                  onClick={() => startEdit(idx)}
-                  className="text-xs font-semibold cursor-pointer px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-all active:scale-95"
-                >
-                  Edit
-                </button>
-              )}
             </>
           )}
         </div>

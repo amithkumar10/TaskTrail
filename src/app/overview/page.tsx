@@ -254,7 +254,7 @@ const checkAuthorization = () => {
 
           {showAddInternForm && (
             <div className="fixed inset-0 z-50 flex rounded items-center justify-center bg-black/60 px-4 py-6 backdrop-blur-sm">
-              <section className="w-full max-w-2xl rounded bg-card shadow-2xl">
+              <section className="w-full max-w-2xl max-h-[90vh] overflow-hidden rounded bg-card shadow-2xl">
                 <div className="bg-black text-white flex items-center justify-between gap-3 px-5 py-4 sm:px-6">
                   <h2 className="text-base font-semibold tracking-tight sm:text-lg">
                     Add new intern
@@ -268,7 +268,11 @@ const checkAuthorization = () => {
                   </button>
                 </div>
 
-              <form className="space-y-4 px-5 py-5 sm:px-6" onSubmit={handleAddIntern}>
+                <div
+                  className="max-h-[calc(90vh-64px)] overflow-y-auto px-5 py-5 sm:px-6"
+                  style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                >
+              <form className="space-y-4" onSubmit={handleAddIntern}>
                 <div className="">
                   <label className="text-xs font-medium text-muted-foreground sm:text-sm">
                     First name
@@ -408,6 +412,7 @@ const checkAuthorization = () => {
                   </p>
                 </div>
               )}
+                </div>
             </section>
             </div>
           )}
