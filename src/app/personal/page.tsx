@@ -8,7 +8,7 @@ import AttendanceSelector from "@/components/personal/AttendanceSelector";
 // DEPARTMENT — change this one line to switch the entire task flow
 // "Development" | "Social Media" | "Marketing"
 // ─────────────────────────────────────────────────────────────────────────────
-const CURRENT_DEPARTMENT = "Marketing";
+const CURRENT_DEPARTMENT:string = "Marketing";
 
 // ─── Department Config ────────────────────────────────────────────────────────
 const DEPT_CONFIG = {
