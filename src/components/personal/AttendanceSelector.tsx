@@ -9,6 +9,8 @@ const AttendanceSelector: React.FC = () => {
   const [status, setStatus] = useState<DayStatus>("");
   const [locked, setLocked] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState(true);
+  const [isMobile, setIsMobile] = useState<boolean>(typeof window !== "undefined" ? window.innerWidth < 768 : false);
 
   useEffect(()=>{
     const id = JSON.parse(localStorage.getItem("userId") || "null");
@@ -38,6 +40,29 @@ const AttendanceSelector: React.FC = () => {
     }
   }, []);
 
+  // track viewport changes and ensure desktop always expanded
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(max-width: 767px)");
+    const handler = (e: MediaQueryListEvent) => {
+      setIsMobile(e.matches);
+      if (!e.matches) setIsExpanded(true);
+    };
+    setIsMobile(mq.matches);
+    if (mq.addEventListener) mq.addEventListener("change", handler);
+    else mq.addListener(handler as any);
+    return () => {
+      if (mq.removeEventListener) mq.removeEventListener("change", handler);
+      else mq.removeListener(handler as any);
+    };
+  }, []);
+
+  // collapse on mobile only when attendance already marked
+  useEffect(() => {
+    if (isMobile && locked) setIsExpanded(false);
+    if (!isMobile) setIsExpanded(true);
+  }, [isMobile, locked]);
+
   console.log("Today Date", getTodayDate());
 
   const handleStatusChange = async (value: DayStatus) => {
@@ -56,9 +81,10 @@ const AttendanceSelector: React.FC = () => {
         userId,
       });
 
-      if (res.status === 200) {
+        if (res.status === 200) {
         setStatus(value);
         setLocked(true);
+        if (isMobile) setIsExpanded(false);
 
         // ✅ Persist lock for today
         localStorage.setItem("attendanceStatus", value);
@@ -78,6 +104,8 @@ const AttendanceSelector: React.FC = () => {
     { value: "Leave", label: "Leave", hint: "Absent" },
   ];
 
+  const showCollapsed = isMobile && !!status && !isExpanded;
+
   return (
     <div className="w-full max-w-md mx-auto p-6">
       <div className="mb-6">
@@ -92,7 +120,21 @@ const AttendanceSelector: React.FC = () => {
         </p>
       </div>
 
-      <div className="flex flex-col gap-2">
+      {showCollapsed && (
+        <button
+          type="button"
+          onClick={() => setIsExpanded(true)}
+          className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 bg-white"
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-400 uppercase tracking-widest font-semibold">Attendance</span>
+            <span className="text-sm font-semibold text-gray-900">{status}</span>
+          </div>
+          <span className="text-xs font-semibold text-gray-600">Open</span>
+        </button>
+      )}
+
+      {!showCollapsed && <div className="flex flex-col gap-2">
         {options.map(({ value, label, hint }) => (
           <label
             key={value}
@@ -137,9 +179,9 @@ const AttendanceSelector: React.FC = () => {
             />
           </label>
         ))}
-      </div>
+      </div>}
 
-      {status ? (
+      {!showCollapsed && status ? (
         <div className="mt-4 flex items-center justify-between px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl">
           <span className="text-xs text-gray-400 uppercase tracking-widest font-semibold">
             Selected
@@ -149,9 +191,19 @@ const AttendanceSelector: React.FC = () => {
           </span>
         </div>
       ) : (
-        <p className="mt-4 text-center text-gray-600 text-xs">
+        !showCollapsed && <p className="mt-4 text-center text-gray-600 text-xs">
           No status selected yet
         </p>
+      )}
+
+      {!showCollapsed && isMobile && !!status && (
+        <button
+          type="button"
+          onClick={() => setIsExpanded(false)}
+          className="mt-3 w-full text-xs font-semibold text-gray-600 border border-gray-200 rounded-xl py-2 bg-white"
+        >
+          Collapse
+        </button>
       )}
     </div>
   );

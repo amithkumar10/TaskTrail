@@ -1,12 +1,28 @@
 import { connectDB } from "@/app/lib/mongo";
 
-export async function POST(req: Request) {
+const ADMIN_USERNAME = "admin@tasktrail.com";
 
+function normalizeRole(role: unknown) {
+    const value = typeof role === "string" ? role.trim().toLowerCase() : "";
+
+    if (value === "admin") return "Admin";
+    if (value === "employee") return "Employee";
+    return "Intern";
+}
+
+export async function POST(req: Request) {
     const db = await connectDB();
 
-    const { username, password, role} = await req.json(); 
+    const { username, password } = await req.json();
+    const normalizedUsername = typeof username === "string" ? username.trim().toLowerCase() : "";
 
-    const user = await db.collection("users").findOne({ username});
+    if (!normalizedUsername || !password) {
+        return Response.json({ message: "Username and password are required" }, { status: 400 });
+    }
+
+    const user = await db.collection("users").findOne({
+        username: normalizedUsername,
+    });
 
     if (!user) {
         return Response.json({ message: "User not found" }, { status: 404 });
@@ -16,14 +32,12 @@ export async function POST(req: Request) {
         return Response.json({ message: "Invalid credentials" }, { status: 401 });
     }
 
-    if (user.role !== role) {
-        return Response.json({ message: "Role mismatch" }, { status: 403 });
-    }
+    const resolvedRole = normalizedUsername === ADMIN_USERNAME ? "Admin" : normalizeRole(user.role);
 
     return Response.json({
         message: "Login successful",
         username: user.username,
-        role: user.role,
+        role: resolvedRole,
         userId: user._id
     });
 }

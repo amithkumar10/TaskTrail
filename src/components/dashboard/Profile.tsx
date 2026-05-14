@@ -6,14 +6,24 @@ import axios from "@/app/utils/axiosConfig";
 import { useParams } from 'next/navigation';
 
 const ProfileCard = () => {
-  const [data, setData] = useState({ name: "", project: "", manager: "", position: "" });
+  const [data, setData] = useState({ name: "", project: [] as string[], manager: "", position: "" });
   const userId = useParams();
 
   useEffect(()=>{
     axios.get("/users")
       .then(response => {
       
-        setData(response.data? response.data.find((user: { _id: string }) => user._id === userId.internId) : { name: "", project: "", manager: "", position: "" });
+        const found = response.data ? response.data.find((user: any) => user._id === userId.internId) : null;
+        if (found) {
+          setData({
+            name: found.name || "",
+            project: Array.isArray(found.project) ? found.project : (found.project ? [found.project] : []),
+            manager: found.manager || "",
+            position: found.position || "",
+          });
+        } else {
+          setData({ name: "", project: [], manager: "", position: "" });
+        }
       })
       .catch(error => {
         console.error("Error fetching user data:", error);
@@ -40,8 +50,16 @@ const ProfileCard = () => {
       </div>
       <div className=" flex justify-between mt-4 text-gray-700">
       <div className='flex gap-2'>
-          <p className='font-bold'>Project: </p>
-        <p>{data.project}</p>
+          <p className='font-bold'>Projects: </p>
+        <div className="flex gap-2 flex-wrap">
+          {data.project.length === 0 ? (
+            <p className="text-gray-500">—</p>
+          ) : (
+            data.project.map((p, i) => (
+              <span key={i} className="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-full">{p}</span>
+            ))
+          )}
+        </div>
       </div>
 
         <div className='flex gap-2'>
