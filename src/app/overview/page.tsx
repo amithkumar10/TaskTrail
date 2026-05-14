@@ -188,6 +188,13 @@ const checkAuthorization = () => {
             </div>
             <button
               type="button"
+              onClick={() => router.push("/knowledge-base")}
+              className="rounded-md border border-white/20 bg-white/10 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-white transition-colors hover:bg-white/20"
+            >
+              📚 Knowledge Base
+            </button>
+            <button
+              type="button"
               onClick={logout}
               className="rounded-md border border-white/20 bg-white/10 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-white transition-colors hover:bg-white/20"
             >
