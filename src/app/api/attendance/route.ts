@@ -27,7 +27,11 @@ export async function POST(req: Request) {
 
     if (existing) {
       return Response.json(
-        { message: "Attendance already marked" },
+        {
+          message: "Attendance already marked",
+          status: existing.status,
+          attendanceId: existing._id,
+        },
         { status: 409 }
       );
     }
@@ -84,6 +88,8 @@ export async function GET(req: Request) {
       },
     }).toArray();
 
+    const requestedRecord = records.find((rec: any) => rec.date === date);
+
     // Map day → status
     const attendanceMap: Record<number, string> = {};
 
@@ -104,6 +110,9 @@ export async function GET(req: Request) {
       success: true,
       days: totalDays,
       data: result,
+      requestedDateMarked: Boolean(requestedRecord),
+      requestedDateStatus: requestedRecord?.status || null,
+      requestedDate: date,
     });
 
   } catch (error) {
