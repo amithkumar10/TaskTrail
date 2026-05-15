@@ -10,15 +10,10 @@ const AttendanceSelector: React.FC = () => {
   const [locked, setLocked] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
 
-  useEffect(()=>{
+  useEffect(() => {
     const id = JSON.parse(localStorage.getItem("userId") || "null");
     setUserId(id);
-    console.log("AttendanceSelector userId:", userId);
   }, []);
-
-  
-
-
   const getTodayDate = () => {
     const today = new Date();
     const yyyy = today.getFullYear();
@@ -27,21 +22,55 @@ const AttendanceSelector: React.FC = () => {
     return `${yyyy}-${mm}-${dd}`;
   };
 
-  // Optional: lock if already marked (on reload)
   useEffect(() => {
-    const saved = localStorage.getItem("attendanceStatus");
-    const savedDate = localStorage.getItem("attendanceDate");
+    const syncAttendanceFromDb = async () => {
+      if (!userId) return;
 
-    if (saved && savedDate === getTodayDate()) {
-      setStatus(saved as DayStatus);
-      setLocked(true);
-    }
-  }, []);
+      try {
+        const todayDate = getTodayDate();
+        const res = await axios.get("/attendance", {
+          params: { userId, date: todayDate },
+        });
 
-  console.log("Today Date", getTodayDate());
+        const requestedDateStatus = res.data?.requestedDateStatus as DayStatus | null;
+        if (res.data?.requestedDateMarked && requestedDateStatus) {
+          setStatus(requestedDateStatus);
+          setLocked(true);
+          localStorage.setItem("attendanceStatus", requestedDateStatus);
+          localStorage.setItem("attendanceDate", todayDate);
+          return;
+        }
+
+        const saved = localStorage.getItem("attendanceStatus");
+        const savedDate = localStorage.getItem("attendanceDate");
+
+        if (saved && savedDate === todayDate) {
+          setStatus(saved as DayStatus);
+          setLocked(true);
+        }
+      } catch (error) {
+        const saved = localStorage.getItem("attendanceStatus");
+        const savedDate = localStorage.getItem("attendanceDate");
+
+        if (saved && savedDate === getTodayDate()) {
+          setStatus(saved as DayStatus);
+          setLocked(true);
+        }
+
+        console.error("Failed to sync attendance from db", error);
+      }
+    };
+
+    syncAttendanceFromDb();
+  }, [userId]);
 
   const handleStatusChange = async (value: DayStatus) => {
     if (locked) return;
+
+    if (!userId) {
+      alert("Please sign in again to mark attendance.");
+      return;
+    }
 
 
     const confirm = window.confirm(`Mark attendance as "${value}"?`);
@@ -68,6 +97,18 @@ const AttendanceSelector: React.FC = () => {
         console.log("Attendance updated successfully");
       }
     } catch (error: any) {
+      if (error?.response?.status === 409 && error?.response?.data?.status) {
+        const todayDate = getTodayDate();
+        const existingStatus = error.response.data.status as DayStatus;
+
+        setStatus(existingStatus);
+        setLocked(true);
+        localStorage.setItem("attendanceStatus", existingStatus);
+        localStorage.setItem("attendanceDate", todayDate);
+        window.dispatchEvent(new Event("attendanceMarked"));
+        return;
+      }
+
       console.error("Failed to update attendance", error?.response?.data);
     }
   };

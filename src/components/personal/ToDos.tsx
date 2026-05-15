@@ -37,11 +37,36 @@ const ToDos: React.FC = () => {
     setCanAddTasks(Boolean(savedStatus && savedDate === getTodayDate()));
   };
 
-    useEffect(() => {
+  useEffect(() => {
     const id = JSON.parse(localStorage.getItem("userId") || "null");
     setUserId(id);
-    syncAttendanceState();
   }, []);
+
+  useEffect(() => {
+    const syncAttendanceFromDb = async () => {
+      if (!userId) return;
+
+      try {
+        const todayDate = getTodayDate();
+        const res = await fetch(`/api/attendance?userId=${userId}&date=${todayDate}`);
+        const data = await res.json();
+
+        if (data?.requestedDateMarked) {
+          setCanAddTasks(true);
+          localStorage.setItem("attendanceStatus", data.requestedDateStatus);
+          localStorage.setItem("attendanceDate", todayDate);
+          return;
+        }
+
+        syncAttendanceState();
+      } catch (error) {
+        syncAttendanceState();
+        console.error("Failed to sync attendance state", error);
+      }
+    };
+
+    syncAttendanceFromDb();
+  }, [userId]);
 
   useEffect(() => {
     const handleAttendanceMarked = () => {
